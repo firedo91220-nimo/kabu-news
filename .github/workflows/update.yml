@@ -4,7 +4,7 @@ name: update-dashboard
 # PCの電源が入っていなくても動く。
 on:
   schedule:
-    - cron: "*/30 * * * *"   # 30分ごと（UTC基準。実行は数分遅れることがあります）
+    - cron: "13,43 * * * *"  # 毎時13分・43分（混雑する0分/30分を避けて発火率を上げる。UTC基準）
   workflow_dispatch:          # 手動実行ボタン用
 
 permissions:
