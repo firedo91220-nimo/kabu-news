@@ -1,0 +1,45 @@
+name: update-dashboard
+
+# クラウド（GitHubのサーバー）で自動的にダッシュボードを更新する。
+# PCの電源が入っていなくても動く。
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # 30分ごと（UTC基準。実行は数分遅れることがあります）
+  workflow_dispatch:          # 手動実行ボタン用
+
+permissions:
+  contents: write             # index.html を更新してpushするために必要
+
+concurrency:
+  group: update-dashboard
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet feedparser yfinance requests
+
+      - name: Generate dashboard (cloud mode)
+        run: |
+          python news_app.py --cloud
+          cp news.html index.html
+
+      - name: Commit & push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "auto update dashboard"
+            git push
+          fi
